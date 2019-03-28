@@ -1,0 +1,29 @@
+
+
+{% extends "base.html.twig" %}
+
+{% block title %}
+  Lecture d'une news - {{ parent()}}
+{% endblock %}
+
+
+
+{% block body %}
+
+
+  <h2>{{ news.title }}</h2>
+  <i>Par {{ news.author}}, le {{ news.date|date('d/m/Y') }} </i>
+  
+  <div class="well">
+    {{ news.content }}
+  </div>
+  
+  
+  <p>
+    <a href="{{ path('homepage')}}" class="btn btn-default">
+	  <i class="glyphicon glyphicon-chevron-left"></i>
+	  Retour à la liste
+	</a>
+  </p>
+   
+{% endblock %}

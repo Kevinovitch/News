@@ -1,0 +1,122 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+  Accueil
+{% endblock %}
+
+{% block body %}
+
+    
+  <div>
+        <i>Pour liker un article, connectez-vous et cliquer sur un bouton. Pour deliker, cliquer sur le bouton de l'article "liké". </i>
+  </div>
+    <div class="row">  
+        <div id="menu" class="col-md-3">
+            {% if app.user %} 
+                 <a href="{{ path("fos_user_security_logout") }}">Déconnexion</a>
+                 <input type="hidden" value="{{app.user.id}}" name="id-user" />
+             {% else %} 
+                 <a href="{{ path("fos_user_security_login") }}">Connexion</a>
+            {% endif %}
+         </div>
+         <div id="content" class="col-md-9">
+
+             <h2>Les dernières news </h2>
+             
+            
+            <table class="nav nav-pills nav-stacked">
+                <tr>
+                   <th>Titre</th>
+                   <th>Nb de likes</th>
+               </tr>
+                {% for news in listNews|reverse(true) if news.id > ( listNews|length - 3) %}
+                  <tr>
+                      <td><a href="{{ path('view_news', {'id': news.id}) }}">{{ news.title }}</a></td>
+                       {% if app.user %}
+                           {% if app.user.likes|length > 0 %}
+                                {% set break = false %}
+                                {% for like in news.likes if like.user.id == app.user.id and not break %}
+                                     <td>
+                                         <button type="button" class="button-unlike" style="background-color: green;" id="like_unlike-{{news.id}}">{{news.nbLikes}}</button>
+                                     </td>
+                                    {% set break = true %}
+                                {% endfor %}     
+
+                                {% for like2 in news.likes if like2.user.id != app.user.id and not break %}
+                                     <td>
+                                         <button type="button" class="button-like" style="background-color: blue;" id="like_unlike-{{news.id}}">{{news.nbLikes}}</button>
+                                     </td> 
+                                     {% set break = true %}
+                                {% endfor %}
+                            {% else %}                             
+                                <td>
+                                    <button type="button" class="button-like" style="background-color: blue;" id="like_unlike-{{news.id}}">{{news.nbLikes}}</button>
+                                </td>  
+                            {% endif %}
+                        {% else %}
+                        <td>
+                            <button type="button" id="like_unlike-{{news.id}}">{{news.nbLikes}}</button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </table>
+         </div>
+    </div>  
+{% endblock %}
+
+{% block javascripts %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script>
+
+  //$("#like_unlike-3").css("background-color", "yellow");
+$('button').click( function(){      
+    var idButton = $(this).attr('id');
+    var buttonText = $('#'+idButton).text();
+    var newsId = idButton.substr(12);
+    var userId = $("input[name='id-user']").val(); 
+    if($("button#"+idButton).hasClass('button-unlike') === false){
+        $.ajax({
+            url:'/like',
+            type: "POST",
+            dataType: "json",
+            data: {
+                "news": newsId,
+                "user": userId
+            },
+            async: true,
+            success: function()
+            {
+                $('#'+idButton).css("background-color", "green");
+                $('#'+idButton).removeClass('button-like').addClass('button-unlike');
+                $('#'+idButton).text(parseInt(buttonText) + 1);
+            }
+        });
+    } if($("button#"+idButton).hasClass('button-like') === false && $("button#"+idButton).hasClass('button-unlike') === true){
+        $.ajax({
+            url:'/unlike',
+            type: "POST",
+            dataType: "json",
+            data: {
+                "news": newsId,
+                "user": userId
+            },
+            async: true,
+            success: function ()
+            { 
+                $('#'+idButton).css("background-color", "blue");
+                $('#'+idButton).removeClass('button-unlike').addClass('button-like');
+                $('#'+idButton).text(parseInt(buttonText) - 1);
+            }
+        });
+    }
+
+});
+
+
+
+
+   </script>
+{% endblock %}
+
+
